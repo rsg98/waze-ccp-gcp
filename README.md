@@ -1,5 +1,7 @@
-![banner](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/banner.png)
 # Waze CCP on GCP
+
+![banner](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/banner.png)
+
 This is not an officially supported Google product, though support will be provided on a best-effort basis.
 
 Copyright 2018 Google LLC
@@ -8,7 +10,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    https://www.apache.org/licenses/LICENSE-2.0
+[https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,158 +18,156 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-### Introduction
+## Introduction
 
-This AppEngine sample application is designed to process your Waze CCP JSON Feed into; BigQuery GIS  tables for analysis, Google Cloud Storage as GeoJSON for use in desktop or web GIS applications,  and, optionally into [Carto](https://carto.com/) for advanced spatial visualization. 
+This AppEngine sample application is designed to process your Waze CCP JSON Feed into; BigQuery GIS  tables for analysis, Google Cloud Storage as GeoJSON for use in desktop or web GIS applications,  and, optionally into [Carto](https://carto.com/) for advanced spatial visualization.
 
 Join the [Group](https://groups.google.com/d/forum/waze-ccp-gcp) for updates and discussion
 
-##### Google Cloud Products Used:
+### Google Cloud Products Used
+
 - Google AppEngine
 - Google Cloud Datastore
 - Google BigQuery
 - Google Cloud Storage
 - Google Cloud Tasks
 
-### Getting Started
+## Getting Started
 
-##### Step 1: Create and Configure your Project
+### Step 1: Create and Configure your Project
 
+![New Project Screen](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/1.png)
 
-<p align="center">
-  <img src="https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/1.png" width="600px"/>
-</p>
+We will need the Project ID later.
 
-From here on out, we'll refer to your Project ID as **{project-id}** and Project Name as **{project-name}**
+### Step 2: Configure BigQuery
 
-##### Step 2: Configure BigQuery
+#### 1. Enable the BigQuery API
 
-###### 1. Enable the BigQuery API
+![Enable BigQuery API](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/2.png)
 
-<p align="center">
-  <img src="https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/2.png" width="600px"/>
-</p>
+#### 2. Go to BigQuery UI and Create a Dataset
 
-###### 2. Go to BigQuery UI and Create a Dataset
+![Create BigQuery Dataset](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/3.png)
 
-<p align="center">
-  <img src="https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/3.png" width="600px"/>
-</p>
+We will need the Dataset ID later, in SQL format with ``project-id.dataset_id`` - for example:
 
-From here on out, we'll refer to your Dataset as **{bqDataset}**
+![View Datasets in BigQuery UI](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/4.png)
 
-<p align="center">
-  <img src="https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/4.png" width="600px"/>
-</p>
+This would translate as:
 
-##### Step 3. Go to Cloud Storage UI and Create a Bucket
+    waze-ccp-os.waze_ccp
 
-<p align="center">
-  <img src="https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/5.png" width="600px"/>
-</p>
+We'll refer to this as ``BQDATASET``
 
-From here on out, we'll refer to your Bucket as **{gcsPath}**
+#### Step 3. Go to Cloud Storage UI and Create a Bucket
 
-##### Step XX. Create a Cloud Tasks Queue
+![Cloud Storage UI](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/5.png)
 
-TODO: Need to create AppEngine app first?
+From here on out, we'll refer to your Bucket as ``GCSPATH``
 
-```
-gcloud tasks queues create update-waze-cases
-```
+#### Step 4. Create a Cloud Tasks Queue
 
-##### Step 4. Download source code, Install Dependencies, and Update Variables to Match your Project.
-###### 1. Clone This Source Code: 
-```git clone https://github.com/google/waze-ccp-gcp.git ```
-###### 2. Update Variables Source Code: 
-First, generate a [GUID](https://www.guidgenerator.com/). This will be referred to as **{guid}** and its just a way to create a non-guessable URL for the handler that Cron will call to update the Waze data every 10 minutes. 
+Open Cloud Shell in the Google Cloud Platform Console, and run:
 
-TODO - change this for instances/config.cfg
-- In app.yaml 
-  - Line 15: Change **{project-name}** to your **{project-name}**
-  - Line 37: Change **{guid}** to your **{guid}** 
-- In cron.yaml 
-  - Line 17: Change **{guid}** to your **{guid}**
-- In main.py
-  - Line 29: Change **{waze-url}** to your Waze CCP URL
-  - Line 38: Change **{gcsPath}** to your **{gcsPath}** 
-  - Line 41: Change **{bqDataset}** to your **{bqDataset}**
-  -  Line 873: Change **{guid}** to your **{guid}**
+    gcloud tasks queues create waze-ccp-tasks
 
-###### 3. Install Dependencies to /lib folder: 
-TODO: No need!
+You can change the name of the queue if necessary.  You may be prompted to enable the Tasks API, and create an App Engine application.
 
-This application utilizes Google-provided Python libraries that are not part of AppEngine Standard, but are easily installed using the vendor library method. Becaue these libraries update frequently and themselves install additional dependencies, you will use the requirements.txt file provided and pip to install them. 
+We will refer to the queue name as ``CLOUD_TASKS_QUEUE`` and the location in which the queue is located as ``CLOUD_TASKS_LOCATION``.  View the location by running:
 
-From the terminal, change directories to where you cloned the source code. 
-``` cd {your-app-folder} ```
-Next, use pip to install the required libraries to the /lib folder. 
-``` pip install -r requirements.txt -t lib/ ```
-The special file "appengine_config.py" uses the Vendor library to include any dependencies located in the /lib folder.
+    gcloud tasks queues describe waze-ccp-tasks
 
-##### Step 5. Deploy your Application to AppEngine
+Which will return (for example):
 
+    name: projects/project-id/locations/us-central1/queues/waze-ccp-tasks
 
-###### 1. Using gcloud, Switch Project to your New Project:
-``` gcloud config set project {project-name} ```
-###### 2. Using gcloud, Switch Project to your New Project:
-``` gcloud app create ```
+#### Step 5. Download source code and Update Variables to Match your Project
 
-<p align="center">
-  <img src="https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/9.png" width="600px"/>
-</p>
+##### (i). Clone This Source Code
 
-###### 3. Using gcloud, Deploy your Application:
+Using Cloud Shell, download the source code - by default, this will download code to ``waze-ccp-gcp``:
 
-```gcloud app deploy {your-app-folder}/app.yaml```
+    git clone https://github.com/google/waze-ccp-gcp.git
 
-TODO: Add cron task
+##### (ii). Update Variables Source Code
 
-###### 4. Secure your Application with Identity Aware Proxy:
-Even though you generated a GUID to serve as the URL path that AppEngine's Cron accesses to cause a data update, someone could discover it and maliciously hit that URL, and, they could also hit the /newCase/ endpoint. In order to prevent unwanted use of these URLs, you will enable IAP and lock down access to the application only to approved users (or just you). 
+Run the ``generate_config.py`` - this will do two things:
 
-When you go to IAP settings for your project, you'll first have to set up a Credentials Screen (Oath2). 
+- Create a specific configuration file in ``instance/wazeccp.cfg`` which contains a custom GUID
+- Create the cron.yaml, with a custom GUID
+
+The GUID is just a way to create a non-guessable URL for the handler that Cron will call to update the Waze data every 10 minutes.
+
+Now edit the ``instance/wazeccp.cfg`` file, and update the placeholder values with the ones from your project.  (Note, edit the config file in the instance folder, **not** the template configuration file in the root)
+
+For example:
+
+    WAZE_URL="https://my.waze.url/"
+    BQDATASET="waze-gcp-ccp.waze_ccp"
+    GCSPATH="waze-gcp-ccp-os"
+    CLOUD_TASKS_QUEUE="waze-ccp-tasks"
+    CLOUD_TASKS_LOCATION="us-central1"
+    GUID="xxxxx-xxxxx-xxxxx-xxxxx"
+
+Note that you do not need to change the GUID, as this was set by the ``generate_config.py`` script.
+
+##### (iii). Deploy your Application to AppEngine
+
+From Cloud Shell, use gcloud to deploy the app:
+
+    cd waze-gcp-ccp
+    gcloud app deploy app.yaml
+
+Also, deploy the cron job that will periodically update data:
+
+    gcloud app deploy cron.yaml
+
+#### Step 6. Secure your Application with Identity Aware Proxy
+
+Even though you generated a GUID to serve as the URL path that AppEngine's Cron accesses to cause a data update, someone could discover it and maliciously hit that URL, and, they could also hit the /newCase/ endpoint. In order to prevent unwanted use of these URLs, you will enable IAP and lock down access to the application only to approved users (or just you).
+
+When you go to IAP settings for your project, you'll first have to set up a Credentials Screen (Oath2).
 Set the Application Type to "Internal".
 
-<p align="center">
-  <img src="https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/7.png" width="600px"/>
-</p>
+![Configure OAuth Consent Screen](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/7.png)
 
-Then, under IAP - turn the IAP on for the AppEngine app: 
+Then, under IAP - turn the IAP on for the AppEngine app:
 
-<p align="center">
-  <img src="https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/8.png" width="600px"/>
-</p>
+![Enable IAP For App Engine](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/8.png)
 
-You can verify that IAP is working by visiting https://{project-name}.appspot.com in an Incognito browser. You should be redircted to your OAuth2 Credentials Screen, which shows that the IAP is working and protecting the entire application. 
+You can verify that IAP is working by visiting [https://{project-name}.appspot.com](https://{project-name}.appspot.com) in an Incognito browser. You should be redircted to your OAuth2 Credentials Screen, which shows that the IAP is working and protecting the entire application.
 
-##### Step 6. Create your New Case Study
+#### Step 7. Create your New Case Study
 
-Simply visit https://{project-name}.appspot.com/newCase/?name={your-case-name} 
+Simply visit ![https://{project-name}.appspot.com/newCase/?name={your-case-name}]
 
-TODO: should get a confirmation page, not a blank one.
+You should just see a confirmation page (which includes the Datastore UID), and no 500 errors if everything worked correctly.
 
-You should just see a blank page rendered, and no 500 errors if everything worked correctly. 
-To confirm the Case Study was crated, you can visit Datastore and confirm the Entity you expect to see is there. 
-<p align="center">
-  <img src="https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/10.png" width="8600px"/>
-</p>
-Within 10 minutes, the Cron job described in cron.yaml will call https://{project-name}.appspot.com/{guid}/ and will start populating the tables in BigQuery. *Note - the cron function of AppEngine is internal so it is automatically inscope for IAP purposes. 
+To confirm the Case Study was crated, you can visit Datastore and confirm the Entity you expect to see is there.
 
-##### Step 7. Investigating the Waze Data
-###### BigQuery:
-In BigQuery, you should see the three tables (alerts, jams, irregularities) under your **{bqDataset}**
-<p align="center">
-  <img src="https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/11.png" width="600px"/>
-</p>
+![Datastore view of caseModel kind](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/10.png)
+
+Within 10 minutes, the Cron job described in cron.yaml will call [https://{project-name}.appspot.com/{guid}/cron](https://{project-name}.appspot.com/{guid}/cron) and will start populating the tables in BigQuery.
+
+*Note - the cron function of AppEngine is internal so it is automatically inscope for IAP purposes.
+
+#### Step 7. Investigating the Waze Data
+
+##### BigQuery
+
+In BigQuery, you should see the three tables (alerts, jams, irregularities) under your ``BQDATASET`` - these tables have a suffix of the UID assigned to the caseModel entity in Datastore
+
+![BigQuery Tables](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/11.png)
 
 These tables will contain all the **unique** elements from your **{waze-url}**
-<p align="center">
-  <img src="https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/12.png" width="800px"/>
-</p>
 
-###### Data Studio:
+![BigQuery Unique Events View](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/12.png)
+
+##### Data Studio
+
 Once you have a few days worth of data, you can start experimenting with building Data Studio dashboards.
-<p align="center">
-  <img src="https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/6.png" width="800px"/>
-</p>If you come up with something interesting, be sure to share with the group: <waze-ccp-on-gcp@googlegroups.com>
+
+![Datastudio Example](https://storage.googleapis.com/waze-ccp-gcp-os/readmeimages/6.png)
+
+If you come up with something interesting, be sure to share with the group: <waze-ccp-on-gcp@googlegroups.com>
