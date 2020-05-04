@@ -12,31 +12,16 @@
 #See the License for the specific language governing permissions and
 # under the License.
 
-application: {project-name}
-version: 1
-runtime: python27
-api_version: 1
-threadsafe: yes
+runtime: python37
 instance_class: F4
-
-libraries:
-- name: ssl
-  version: latest
 
 default_expiration: "1s"
 
 env_variables:
-    GAE_USE_SOCKETS_HTTPLIB : 'true'
+  FLASK_ENV: 'development'
 
 handlers:
 
-- url: /newCase/
-  script: main.app
+- url: /.*
+  script: auto
   secure: always
-
-- url: /{guid}/
-  script: main.app
-  secure: always
-
-builtins:
-- deferred: on

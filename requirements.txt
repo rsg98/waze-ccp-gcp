@@ -1,3 +1,8 @@
-GoogleAppEngineCloudStorageClient
+google-cloud-storage
 google-cloud-bigquery
+google-cloud-ndb
+google-cloud-tasks
+googleapis-common-protos
+requests
 unidecode
+flask

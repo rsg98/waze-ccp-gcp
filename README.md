@@ -27,6 +27,7 @@ Join the [Group](https://groups.google.com/d/forum/waze-ccp-gcp) for updates and
 - Google Cloud Datastore
 - Google BigQuery
 - Google Cloud Storage
+- Google Cloud Tasks
 
 ### Getting Started
 
@@ -67,12 +68,21 @@ From here on out, we'll refer to your Dataset as **{bqDataset}**
 
 From here on out, we'll refer to your Bucket as **{gcsPath}**
 
+##### Step XX. Create a Cloud Tasks Queue
+
+TODO: Need to create AppEngine app first?
+
+```
+gcloud tasks queues create update-waze-cases
+```
+
 ##### Step 4. Download source code, Install Dependencies, and Update Variables to Match your Project.
 ###### 1. Clone This Source Code: 
 ```git clone https://github.com/google/waze-ccp-gcp.git ```
 ###### 2. Update Variables Source Code: 
 First, generate a [GUID](https://www.guidgenerator.com/). This will be referred to as **{guid}** and its just a way to create a non-guessable URL for the handler that Cron will call to update the Waze data every 10 minutes. 
 
+TODO - change this for instances/config.cfg
 - In app.yaml 
   - Line 15: Change **{project-name}** to your **{project-name}**
   - Line 37: Change **{guid}** to your **{guid}** 
@@ -85,6 +95,8 @@ First, generate a [GUID](https://www.guidgenerator.com/). This will be referred 
   -  Line 873: Change **{guid}** to your **{guid}**
 
 ###### 3. Install Dependencies to /lib folder: 
+TODO: No need!
+
 This application utilizes Google-provided Python libraries that are not part of AppEngine Standard, but are easily installed using the vendor library method. Becaue these libraries update frequently and themselves install additional dependencies, you will use the requirements.txt file provided and pip to install them. 
 
 From the terminal, change directories to where you cloned the source code. 
@@ -109,6 +121,8 @@ The special file "appengine_config.py" uses the Vendor library to include any de
 
 ```gcloud app deploy {your-app-folder}/app.yaml```
 
+TODO: Add cron task
+
 ###### 4. Secure your Application with Identity Aware Proxy:
 Even though you generated a GUID to serve as the URL path that AppEngine's Cron accesses to cause a data update, someone could discover it and maliciously hit that URL, and, they could also hit the /newCase/ endpoint. In order to prevent unwanted use of these URLs, you will enable IAP and lock down access to the application only to approved users (or just you). 
 
@@ -127,9 +141,12 @@ Then, under IAP - turn the IAP on for the AppEngine app:
 
 You can verify that IAP is working by visiting https://{project-name}.appspot.com in an Incognito browser. You should be redircted to your OAuth2 Credentials Screen, which shows that the IAP is working and protecting the entire application. 
 
-##### Step 6. Creeate your New Case Study
+##### Step 6. Create your New Case Study
 
 Simply visit https://{project-name}.appspot.com/newCase/?name={your-case-name} 
+
+TODO: should get a confirmation page, not a blank one.
+
 You should just see a blank page rendered, and no 500 errors if everything worked correctly. 
 To confirm the Case Study was crated, you can visit Datastore and confirm the Entity you expect to see is there. 
 <p align="center">

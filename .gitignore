@@ -1,0 +1,7 @@
+env/
+.vscode/
+
+# Python pycache:
+__pycache__/
+
+case-dump.bin
